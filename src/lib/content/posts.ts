@@ -1,4 +1,4 @@
-import { fetchMdxFileList, fetchFileContent } from "./githubContent";
+import { fetchMdxFileList, fetchFileContent } from "../github/contentFetch";
 
 export interface PostEntry {
   slug: string;

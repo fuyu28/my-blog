@@ -1,4 +1,4 @@
-import { getPostBySlug, listPosts } from "@/lib/posts";
+import { getPostBySlug, listPosts } from "@/lib/content/posts";
 import { MDXRemote } from "next-mdx-remote-client/rsc";
 
 // これで静的パスを事前に生成

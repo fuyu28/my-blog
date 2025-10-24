@@ -1,4 +1,4 @@
-import { createOctokit } from "./github";
+import { createOctokit } from "./client";
 import type { Endpoints } from "@octokit/types";
 
 type GitTreeResponse =

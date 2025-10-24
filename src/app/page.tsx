@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listPosts } from "@/lib/posts";
+import { listPosts } from "@/lib/content/posts";
 
 export default async function HomePage() {
   const posts = await listPosts();
