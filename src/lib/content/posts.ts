@@ -1,4 +1,6 @@
 import { fetchMdxFileList, fetchFileContent } from "../github/contentFetch";
+import { Frontmatter } from "./frontmatterSchema";
+import { parsePost } from "./parsePost";
 
 export interface PostEntry {
   slug: string;
@@ -6,6 +8,10 @@ export interface PostEntry {
   sha: string;
 }
 
+/**
+ * content/posts/以下のmdxファイルの一覧を取得
+ * @returns slug, path, sha
+ */
 export async function listPosts(): Promise<PostEntry[]> {
   const files = await fetchMdxFileList("content/posts/");
   return files.map((f) => ({
@@ -15,9 +21,14 @@ export async function listPosts(): Promise<PostEntry[]> {
   }));
 }
 
+/**
+ * スラグからポストを取得する
+ * @param slug 表示するページのスラグ
+ * @returns frontmatter: indexのjson, content: 中身のmdx
+ */
 export async function getPostBySlug(
   slug: string
-): Promise<{ slug: string; content: string }> {
+): Promise<{ frontmatter: Frontmatter; content: string }> {
   const posts = await listPosts();
   const entry = posts.find((p) => p.slug === slug);
   if (!entry) {
@@ -25,9 +36,10 @@ export async function getPostBySlug(
   }
 
   const raw = await fetchFileContent(entry.sha);
+  const { frontmatter, content } = parsePost(raw);
 
   return {
-    slug,
-    content: raw,
+    frontmatter,
+    content,
   };
 }

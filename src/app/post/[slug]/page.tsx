@@ -13,20 +13,21 @@ export default async function PostPage({
   params: { slug: string };
 }) {
   const { slug } = await params;
-  const { content } = await getPostBySlug(slug);
+  const { frontmatter, content } = await getPostBySlug(slug);
 
   return (
     <article className="space-y-10">
       {/* ヘッダー部分 */}
       <header className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-          {slug}
+          {frontmatter.title}
         </h1>
 
         <div className="flex flex-col gap-2 text-xs text-zinc-500 dark:text-zinc-400 sm:flex-row sm:items-center sm:gap-4">
           <span className="font-mono">/post/{slug}</span>
-          <span>最終更新: 2025-10-24</span>
-          {/* ↑ 本当はfrontmatterから日付を引っ張る */}
+          {frontmatter.updatedAt !== undefined && (
+            <span>最終更新: {frontmatter.updatedAt.toLocaleDateString("ja-JP")}</span>
+          )}
         </div>
 
         <div className="h-px bg-gradient-to-r from-transparent via-zinc-300/60 to-transparent dark:via-zinc-700/60" />

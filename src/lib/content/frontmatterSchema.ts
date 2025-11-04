@@ -14,9 +14,9 @@ export const FrontmatterSchema = z.object({
   // Deep状態可否
   isDeep: z.boolean().default(false),
   // 公開日
-  publishedAt: z.date().optional(),
+  publishedAt: z.coerce.date().optional(),
   // 更新日
-  updatedAt: z.date().optional(),
+  updatedAt: z.coerce.date().optional(),
   // 説明文
   description: z.string().optional(),
   // タグ

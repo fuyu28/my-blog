@@ -13,7 +13,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen antialiased">
         <header className="border-b border-zinc-200/60 bg-white/70 backdrop-blur-md dark:bg-zinc-900/60 dark:border-zinc-800/60">
-          <div className="mx-auto max-w-screen-md px-4 py-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
             <Link
               href="/"
               className="text-2xl font-semibold tracking-tight text-zinc-800 dark:text-zinc-100 hover:opacity-80"
@@ -27,9 +27,9 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="mx-auto max-w-screen-md px-4 py-10">{children}</main>
+        <main className="mx-auto max-w-3xl px-4 py-10">{children}</main>
 
-        <footer className="mx-auto max-w-screen-md px-4 py-12 text-center text-xs text-zinc-400 dark:text-zinc-600">
+        <footer className="mx-auto max-w-3xl px-4 py-12 text-center text-xs text-zinc-400 dark:text-zinc-600">
           © {new Date().getFullYear()} Fuyu
         </footer>
       </body>

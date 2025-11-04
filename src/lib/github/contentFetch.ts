@@ -9,6 +9,13 @@ const OWNER = process.env.GITHUB_OWNER;
 const REPO = process.env.GITHUB_REPO;
 const REF = process.env.GITHUB_REF ?? "main";
 
+if (!OWNER) {
+  throw new Error("GITHUB_OWNER is not defined");
+}
+if (!REPO) {
+  throw new Error("GITHUB_REPO is not defined");
+}
+
 const octokit = createOctokit();
 
 /**
