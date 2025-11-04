@@ -1,10 +1,10 @@
-import { getPostBySlug, listPosts } from "@/lib/content/posts";
+import { getPostBySlug, listPublicPosts } from "@/lib/content/posts";
 import { MDXRemote } from "next-mdx-remote-client/rsc";
 import { notFound } from "next/navigation";
 
-// これで静的パスを事前に生成
+// これで静的パスを事前に生成（公開記事のみ）
 export async function generateStaticParams() {
-  const posts = await listPosts();
+  const posts = await listPublicPosts();
   return posts.map((p) => ({ slug: p.slug }));
 }
 
@@ -37,7 +37,7 @@ export default async function PostPage({
           )}
         </div>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-zinc-300/60 to-transparent dark:via-zinc-700/60" />
+        <div className="h-px bg-linear-to-r from-transparent via-zinc-300/60 to-transparent dark:via-zinc-700/60" />
       </header>
 
       {/* 本文部分 */}

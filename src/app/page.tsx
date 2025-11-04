@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { listPosts } from "@/lib/content/posts";
+import { listPublicPosts } from "@/lib/content/posts";
 
 export default async function HomePage() {
-  const posts = await listPosts();
+  const posts = await listPublicPosts();
 
   return (
     <section className="space-y-8">
@@ -39,7 +39,8 @@ export default async function HomePage() {
 
                 {post.frontmatter.updatedAt && (
                   <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
-                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                    last updated:{" "}
+                    {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
                   </div>
                 )}
               </div>

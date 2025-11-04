@@ -5,7 +5,14 @@ All responses should be in Japanese.
 
 ## Project Overview
 
-This is a Next.js 15 blog application that fetches MDX content from a GitHub repository via the GitHub API. The blog uses the App Router architecture with TurboPack for optimized builds.
+This is a Next.js 16 blog application that fetches MDX content from a GitHub repository via the GitHub API. The blog uses the App Router architecture with TurboPack for optimized builds.
+
+**Tech Stack**:
+
+- Next.js 16.0.1
+- React 19.2.0
+- TypeScript (strict mode)
+- Tailwind CSS v4
 
 ## Development Commands
 
@@ -32,11 +39,13 @@ Development server runs on http://localhost:3000
 The blog implements a GitHub-backed content management system:
 
 1. **GitHub Content Fetching** (`src/lib/github/`)
+
    - `client.ts`: Creates an authenticated Octokit instance using GitHub App credentials
    - `contentFetch.ts`: Fetches MDX file lists and raw content from the configured GitHub repository
    - Uses environment variables to specify target repository and branch
 
 2. **Content Processing** (`src/lib/content/`)
+
    - `parsePost.ts`: Parses raw MDX into frontmatter + content using gray-matter
    - `frontmatterSchema.ts`: Zod schema validation for frontmatter (title, type, visibility, accessMode, etc.)
    - `posts.ts`: High-level API for listing posts and fetching individual posts by slug
@@ -51,6 +60,14 @@ The blog implements a GitHub-backed content management system:
 - **Frontmatter Schema**: All blog posts must conform to the Zod schema in `frontmatterSchema.ts`. Required fields: `title`, `type`, `visibility`, `accessMode`. Optional: `thumbnail`, `publishedAt`, `updatedAt`, `description`, `topics`, `isDeep`
 - **GitHub Authentication**: Uses GitHub App authentication (not personal access tokens) requiring App ID, private key, and installation ID
 - **Static Site Generation**: Posts are fetched at build time from GitHub and statically generated
+- **Multi-Layer Caching Strategy**:
+  - Layer 1: React `cache()` for request-level deduplication
+  - Layer 2: `unstable_cache()` for persistent caching across builds (1 hour TTL)
+  - Layer 3: ISR with `revalidate: 3600` for automatic revalidation in production
+- **Rate Limiting Protection**:
+  - Automatic rate limit checking before API calls
+  - Exponential backoff retry mechanism (max 3 retries)
+  - Detailed error logging for debugging
 
 ## Environment Variables
 
