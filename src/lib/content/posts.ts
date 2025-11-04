@@ -18,7 +18,8 @@ const fetcher = createContentFetcher(createOctokit(), getGithubConfig());
 
 /**
  * content/posts/以下のmdxファイルの一覧を取得（内部関数・キャッシュ化）
- * unstable_cache()で永続的にキャッシュ（ビルド間で共有）
+ * Cache Components機能で1時間キャッシュ
+ * @returns キャッシュされた記事一覧（Dateフィールドは文字列）
  */
 async function listPostsCached(): Promise<PostEntry[]> {
   "use cache";
@@ -45,19 +46,21 @@ async function listPostsCached(): Promise<PostEntry[]> {
 }
 
 /**
- * Dateフィールドを文字列からDateオブジェクトに変換
+ * frontmatterを持つオブジェクトのDateフィールドを文字列からDateオブジェクトに変換
  * キャッシュからの復元時に必要
+ * @param item frontmatterを含むオブジェクト（PostEntryまたは記事データ）
+ * @returns Dateオブジェクト復元済みのオブジェクト
  */
-function restoreDates(entry: PostEntry): PostEntry {
+function restoreDates<T extends { frontmatter: Frontmatter }>(item: T): T {
   return {
-    ...entry,
+    ...item,
     frontmatter: {
-      ...entry.frontmatter,
-      publishedAt: entry.frontmatter.publishedAt
-        ? new Date(entry.frontmatter.publishedAt)
+      ...item.frontmatter,
+      publishedAt: item.frontmatter.publishedAt
+        ? new Date(item.frontmatter.publishedAt)
         : undefined,
-      updatedAt: entry.frontmatter.updatedAt
-        ? new Date(entry.frontmatter.updatedAt)
+      updatedAt: item.frontmatter.updatedAt
+        ? new Date(item.frontmatter.updatedAt)
         : undefined,
     },
   };
@@ -98,28 +101,45 @@ export async function listPublicPosts(
 }
 
 /**
- * スラグからポストを取得する
- * @param slug 表示するページのスラグ
- * @returns frontmatter: indexのjson, content: 中身のmdx
+ * スラグから記事を取得（内部関数・キャッシュ化）
+ * Cache Components機能で1時間キャッシュ
+ * @param slug 記事のスラグ
+ * @returns キャッシュされた記事データ（Dateフィールドは文字列）
+ */
+async function getPostBySlugCached(
+  slug: string
+): Promise<{ frontmatter: Frontmatter; content: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("posts", `post-${slug}`);
+
+  const path = `content/posts/${slug}.mdx`;
+  const raw = await fetcher.fetchFileContentByPath(path);
+  const { frontmatter, content } = parsePost(raw);
+
+  return {
+    frontmatter,
+    content,
+  };
+}
+
+/**
+ * スラグから記事を取得
+ * @param slug 記事のスラグ
+ * @returns frontmatter（Dateオブジェクト復元済み）とcontent
+ * @throws notFound() 記事が見つからない場合やエラー時
  */
 export async function getPostBySlug(
   slug: string
 ): Promise<{ frontmatter: Frontmatter; content: string }> {
-  const path = `content/posts/${slug}.mdx`;
-
   try {
-    const raw = await fetcher.fetchFileContentByPath(path);
-    const { frontmatter, content } = parsePost(raw);
-
-    return {
-      frontmatter,
-      content,
-    };
+    const post = await getPostBySlugCached(slug);
+    return restoreDates(post);
   } catch (error) {
     // エラー内容をログに記録
     if (error instanceof Error) {
       console.error(`Failed to fetch post: ${slug}`, {
-        path,
+        path: `content/posts/${slug}.mdx`,
         error: error.message,
       });
 
