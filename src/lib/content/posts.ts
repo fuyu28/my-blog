@@ -19,6 +19,8 @@ const fetcher = createContentFetcher(createOctokit(), getGithubConfig());
 /**
  * content/posts/以下のmdxファイルの一覧を取得（内部関数・キャッシュ化）
  * Cache Components機能で1時間キャッシュ
+ *
+ * エラーハンドリング: バリデーションエラーがある記事はスキップし、警告ログを出力
  * @returns キャッシュされた記事一覧（Dateフィールドは文字列）
  */
 async function listPostsCached(): Promise<PostEntry[]> {
@@ -27,20 +29,42 @@ async function listPostsCached(): Promise<PostEntry[]> {
   cacheTag("posts");
   const files = await fetcher.fetchMdxFileList("content/posts/");
 
-  // 各ファイルのfrontmatterを並列で取得
-  const entries = await Promise.all(
+  // 各ファイルのfrontmatterを並列で取得（エラー記事はスキップ）
+  const results = await Promise.allSettled(
     files.map(async (f) => {
-      const raw = await fetcher.fetchFileContent(f.sha);
-      const { frontmatter } = parsePost(raw);
+      try {
+        const raw = await fetcher.fetchFileContent(f.sha);
+        const { frontmatter } = parsePost(raw);
 
-      return {
-        slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
-        path: f.path,
-        sha: f.sha,
-        frontmatter,
-      };
+        return {
+          slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
+          path: f.path,
+          sha: f.sha,
+          frontmatter,
+        };
+      } catch (error) {
+        // バリデーションエラーがある記事はスキップ
+        console.warn(`⚠️  記事をスキップしました: ${f.path}`);
+        if (error instanceof Error) {
+          console.warn(`   理由: ${error.message.split('\n')[0]}`);
+        }
+        throw error; // Promise.allSettledでrejectedとして扱われる
+      }
     })
   );
+
+  // 成功した記事のみを返す
+  const entries = results
+    .filter((result): result is PromiseFulfilledResult<PostEntry> =>
+      result.status === "fulfilled"
+    )
+    .map((result) => result.value);
+
+  // スキップされた記事がある場合は警告を表示
+  const skippedCount = results.length - entries.length;
+  if (skippedCount > 0) {
+    console.warn(`⚠️  ${skippedCount}件の記事がバリデーションエラーによりスキップされました`);
+  }
 
   return entries;
 }
@@ -125,9 +149,11 @@ async function getPostBySlugCached(
 
 /**
  * スラグから記事を取得
+ *
+ * エラーハンドリング: 記事が存在しない、またはバリデーションエラーがある場合は404ページを表示
  * @param slug 記事のスラグ
  * @returns frontmatter（Dateオブジェクト復元済み）とcontent
- * @throws notFound() 記事が見つからない場合やエラー時
+ * @throws notFound() 記事が見つからない場合やバリデーションエラー時
  */
 export async function getPostBySlug(
   slug: string

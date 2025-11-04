@@ -75,6 +75,11 @@ The blog implements a GitHub-backed content management system:
   - Automatic rate limit checking before API calls
   - Exponential backoff retry mechanism (max 3 retries)
   - Detailed error logging for debugging
+- **Error Handling Strategy**:
+  - **Layer-based validation error handling**: Different error handling depending on the context
+  - **Post listing (`listPostsCached`)**: Invalid posts are skipped with warning logs; other posts are displayed normally
+  - **Individual post access (`getPostBySlug`)**: Validation errors trigger 404 pages with detailed error logs
+  - **Zod validation**: Strict schema validation with detailed error messages for debugging
 
 ## Environment Variables
 

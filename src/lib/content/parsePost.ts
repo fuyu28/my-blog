@@ -7,9 +7,14 @@ export interface ParsedPost {
 }
 
 /**
- * 生のデータをfrontmatterとmdxに分離する
- * @param rawMdx 生のmdxファイル
- * @returns frontmatter: 周辺情報のjson, content: 中身のmdx
+ * 生のMDXをfrontmatterとcontentに分離し、バリデーションを実行
+ *
+ * Zodスキーマによる厳密なバリデーションを実行します。
+ * エラー時は詳細なログを出力してエラーをthrowします。
+ *
+ * @param rawMdx 生のMDXファイル（YAML frontmatter + Markdown content）
+ * @returns frontmatter: バリデーション済みのメタデータ, content: MDX本文
+ * @throws Error バリデーションに失敗した場合（詳細なエラーメッセージ付き）
  */
 export function parsePost(rawMdx: string): ParsedPost {
   const { data, content } = matter(rawMdx);
