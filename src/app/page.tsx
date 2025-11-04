@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { listPosts } from "@/lib/content/posts";
+import { listPublicPosts } from "@/lib/content/posts";
+
+// ISR: 1時間ごとに再検証
+export const revalidate = 3600;
 
 export default async function HomePage() {
-  const posts = await listPosts();
+  const posts = await listPublicPosts();
 
   return (
     <section className="space-y-8">
