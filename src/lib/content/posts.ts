@@ -4,7 +4,7 @@ import { getGithubConfig } from "../github/config";
 import { Frontmatter } from "./frontmatterSchema";
 import { parsePost } from "./parsePost";
 import { notFound } from "next/navigation";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 
 export interface PostEntry {
   slug: string;
@@ -20,33 +20,29 @@ const fetcher = createContentFetcher(createOctokit(), getGithubConfig());
  * content/posts/以下のmdxファイルの一覧を取得（内部関数・キャッシュ化）
  * unstable_cache()で永続的にキャッシュ（ビルド間で共有）
  */
-const listPostsCached = unstable_cache(
-  async (): Promise<PostEntry[]> => {
-    const files = await fetcher.fetchMdxFileList("content/posts/");
+async function listPostsCached(): Promise<PostEntry[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("posts");
+  const files = await fetcher.fetchMdxFileList("content/posts/");
 
-    // 各ファイルのfrontmatterを並列で取得
-    const entries = await Promise.all(
-      files.map(async (f) => {
-        const raw = await fetcher.fetchFileContent(f.sha);
-        const { frontmatter } = parsePost(raw);
+  // 各ファイルのfrontmatterを並列で取得
+  const entries = await Promise.all(
+    files.map(async (f) => {
+      const raw = await fetcher.fetchFileContent(f.sha);
+      const { frontmatter } = parsePost(raw);
 
-        return {
-          slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
-          path: f.path,
-          sha: f.sha,
-          frontmatter,
-        };
-      })
-    );
+      return {
+        slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
+        path: f.path,
+        sha: f.sha,
+        frontmatter,
+      };
+    })
+  );
 
-    return entries;
-  },
-  ["posts-list"], // キャッシュキー
-  {
-    revalidate: 3600, // 1時間ごとに再検証
-    tags: ["posts"], // タグでまとめて無効化可能
-  }
-);
+  return entries;
+}
 
 /**
  * Dateフィールドを文字列からDateオブジェクトに変換

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { listPublicPosts } from "@/lib/content/posts";
-
-// ISR: 1時間ごとに再検証
-export const revalidate = 3600;
+import { cacheLife } from "next/cache";
 
 export default async function HomePage() {
+  // ISR: 1時間ごとに再検証
+  "use cache";
+  cacheLife("hours");
+
   const posts = await listPublicPosts();
 
   return (
@@ -42,7 +44,8 @@ export default async function HomePage() {
 
                 {post.frontmatter.updatedAt && (
                   <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
-                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                    last updated:{" "}
+                    {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
                   </div>
                 )}
               </div>

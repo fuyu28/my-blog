@@ -1,9 +1,7 @@
 import { getPostBySlug, listPublicPosts } from "@/lib/content/posts";
 import { MDXRemote } from "next-mdx-remote-client/rsc";
+import { cacheLife } from "next/cache";
 import { notFound } from "next/navigation";
-
-// ISR: 1時間ごとに再検証
-export const revalidate = 3600;
 
 // これで静的パスを事前に生成（公開記事のみ）
 export async function generateStaticParams() {
@@ -16,6 +14,10 @@ export default async function PostPage({
 }: {
   params: { slug: string };
 }) {
+  // ISR: 1時間ごとに再検証
+  "use cache";
+  cacheLife("hours");
+
   const { slug } = await params;
   const { frontmatter, content } = await getPostBySlug(slug);
 
