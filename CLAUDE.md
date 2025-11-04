@@ -49,6 +49,9 @@ The blog implements a GitHub-backed content management system:
    - `parsePost.ts`: Parses raw MDX into frontmatter + content using gray-matter
    - `frontmatterSchema.ts`: Zod schema validation for frontmatter (title, type, visibility, accessMode, etc.)
    - `posts.ts`: High-level API for listing posts and fetching individual posts by slug
+     - `listPostsCached()`: Caches post list with `"use cache"` directive
+     - `getPostBySlugCached()`: Caches individual posts with slug-specific cache tags
+     - `restoreDates()`: Generic function to restore Date objects from cached data
 
 3. **Rendering** (`src/app/`)
    - App Router with dynamic routes: `/post/[slug]`
@@ -60,10 +63,14 @@ The blog implements a GitHub-backed content management system:
 - **Frontmatter Schema**: All blog posts must conform to the Zod schema in `frontmatterSchema.ts`. Required fields: `title`, `type`, `visibility`, `accessMode`. Optional: `thumbnail`, `publishedAt`, `updatedAt`, `description`, `topics`, `isDeep`
 - **GitHub Authentication**: Uses GitHub App authentication (not personal access tokens) requiring App ID, private key, and installation ID
 - **Static Site Generation**: Posts are fetched at build time from GitHub and statically generated
-- **Multi-Layer Caching Strategy**:
-  - Layer 1: React `cache()` for request-level deduplication
-  - Layer 2: `unstable_cache()` for persistent caching across builds (1 hour TTL)
-  - Layer 3: ISR with `revalidate: 3600` for automatic revalidation in production
+- **Caching Strategy (Next.js 16 Cache Components)**:
+  - **Single-Layer Caching**: Cache logic is centralized in data fetching functions (`src/lib/content/posts.ts`)
+  - **Cache Directives**: Uses `"use cache"` with `cacheLife("hours")` for 1-hour TTL
+  - **Cache Tags**: Implements granular cache invalidation
+    - `"posts"`: Tag for all posts (list operations)
+    - `"post-{slug}"`: Tag for individual posts (enables selective revalidation)
+  - **Date Restoration**: Cached data stores dates as strings; `restoreDates()` converts them back to Date objects
+  - **No Page-Level Caching**: Page components (`page.tsx`, `post/[slug]/page.tsx`) don't use cache directives; caching happens only at the data layer
 - **Rate Limiting Protection**:
   - Automatic rate limit checking before API calls
   - Exponential backoff retry mechanism (max 3 retries)
