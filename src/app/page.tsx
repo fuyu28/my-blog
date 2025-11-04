@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { listPublicPosts } from "@/lib/content/posts";
-import { cacheLife } from "next/cache";
 
 export default async function HomePage() {
-  // ISR: 1時間ごとに再検証
-  "use cache";
-  cacheLife("hours");
-
   const posts = await listPublicPosts();
 
   return (
