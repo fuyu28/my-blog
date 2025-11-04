@@ -119,7 +119,20 @@ export async function getPostBySlug(
       frontmatter,
       content,
     };
-  } catch {
+  } catch (error) {
+    // エラー内容をログに記録
+    if (error instanceof Error) {
+      console.error(`Failed to fetch post: ${slug}`, {
+        path,
+        error: error.message,
+      });
+
+      // レートリミットエラーの場合は詳細を表示
+      if (error.message.includes("rate limit")) {
+        console.error("  → GitHub APIのレートリミットに達しました");
+      }
+    }
+
     // 記事が見つからない場合、Next.jsのnot-foundページを表示
     notFound();
   }
