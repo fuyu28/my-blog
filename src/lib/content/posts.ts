@@ -3,6 +3,7 @@ import { createOctokit } from "../github/client";
 import { getGithubConfig } from "../github/config";
 import { Frontmatter } from "./frontmatterSchema";
 import { parsePost } from "./parsePost";
+import { notFound } from "next/navigation";
 
 export interface PostEntry {
   slug: string;
@@ -58,6 +59,7 @@ export async function getPostBySlug(
       content,
     };
   } catch {
-    throw new Error(`Post not found: ${slug}`);
+    // 記事が見つからない場合、Next.jsのnot-foundページを表示
+    notFound();
   }
 }

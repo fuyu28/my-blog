@@ -1,5 +1,6 @@
 import { getPostBySlug, listPosts } from "@/lib/content/posts";
 import { MDXRemote } from "next-mdx-remote-client/rsc";
+import { notFound } from "next/navigation";
 
 // これで静的パスを事前に生成
 export async function generateStaticParams() {
@@ -15,6 +16,11 @@ export default async function PostPage({
   const { slug } = await params;
   const { frontmatter, content } = await getPostBySlug(slug);
 
+  // visibility: "private"は非表示
+  if (frontmatter.visibility === "private") {
+    notFound();
+  }
+
   return (
     <article className="space-y-10">
       {/* ヘッダー部分 */}
@@ -24,9 +30,10 @@ export default async function PostPage({
         </h1>
 
         <div className="flex flex-col gap-2 text-xs text-zinc-500 dark:text-zinc-400 sm:flex-row sm:items-center sm:gap-4">
-          <span className="font-mono">/post/{slug}</span>
           {frontmatter.updatedAt !== undefined && (
-            <span>最終更新: {frontmatter.updatedAt.toLocaleDateString("ja-JP")}</span>
+            <span>
+              最終更新: {frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+            </span>
           )}
         </div>
 
