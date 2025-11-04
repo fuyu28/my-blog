@@ -29,13 +29,8 @@ export async function listPosts(): Promise<PostEntry[]> {
 export async function getPostBySlug(
   slug: string
 ): Promise<{ frontmatter: Frontmatter; content: string }> {
-  const posts = await listPosts();
-  const entry = posts.find((p) => p.slug === slug);
-  if (!entry) {
-    throw new Error(`Post not found: ${slug}`);
-  }
-
-  const raw = await fetchFileContent(entry.sha);
+  const path = `content/posts/${slug}.mdx`;
+  const raw = await fetchFileContent(path);
   const { frontmatter, content } = parsePost(raw);
 
   return {
