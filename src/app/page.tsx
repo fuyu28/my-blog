@@ -1,22 +1,52 @@
-import { MDXRemote } from "next-mdx-remote-client/rsc";
+import Link from "next/link";
+import { listPosts } from "@/lib/content/posts";
 
-async function getContent(): Promise<string> {
-  const url =
-    "https://raw.githubusercontent.com/fuyu28/my-blog-contents/refs/heads/main/test.mdx";
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch: ${res.statusText}`);
-  }
-  const text = await res.text();
-  return text;
-}
-
-export default async function Page() {
-  const source = await getContent();
+export default async function HomePage() {
+  const posts = await listPosts();
 
   return (
-    <article className="prose prose-neutral">
-      <MDXRemote source={source} />;
-    </article>
+    <section className="space-y-8">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 tracking-tight">
+          Blog
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          最近書いたやつ
+        </p>
+      </header>
+
+      <ul className="grid gap-6">
+        {posts.map((post) => (
+          <li key={post.slug}>
+            <Link
+              href={`/post/${post.slug}`}
+              className="block rounded-2xl border border-zinc-200/70 bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:shadow-lg hover:-translate-y-0.5 dark:bg-zinc-900 dark:border-zinc-800/70 dark:ring-white/5"
+            >
+              <div className="flex flex-col gap-2">
+                <h2 className="text-xl font-semibold text-zinc-800 dark:text-zinc-100 leading-tight line-clamp-2">
+                  {post.frontmatter.title}
+                </h2>
+
+                <p className="text-xs font-mono text-zinc-500 dark:text-zinc-400 break-all">
+                  {post.path}
+                </p>
+
+                {post.frontmatter.description && (
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
+                    {post.frontmatter.description}
+                  </p>
+                )}
+
+                {post.frontmatter.updatedAt && (
+                  <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
+                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                  </div>
+                )}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
