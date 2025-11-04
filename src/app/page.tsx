@@ -24,23 +24,24 @@ export default async function HomePage() {
             >
               <div className="flex flex-col gap-2">
                 <h2 className="text-xl font-semibold text-zinc-800 dark:text-zinc-100 leading-tight line-clamp-2">
-                  {post.slug}
+                  {post.frontmatter.title}
                 </h2>
 
                 <p className="text-xs font-mono text-zinc-500 dark:text-zinc-400 break-all">
                   {post.path}
                 </p>
 
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
-                  {/* ここに frontmatter から description を入れると最高
-                     なければ slug から適当に生成してもいい */}
-                  記事の説明が入ります。あとで frontmatter から差し替え予定。
-                </p>
+                {post.frontmatter.description && (
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
+                    {post.frontmatter.description}
+                  </p>
+                )}
 
-                <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
-                  {/* 日付入れるならここ */}
-                  last updated: soon
-                </div>
+                {post.frontmatter.updatedAt && (
+                  <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
+                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                  </div>
+                )}
               </div>
             </Link>
           </li>
