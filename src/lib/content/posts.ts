@@ -19,6 +19,8 @@ const fetcher = createContentFetcher(createOctokit(), getGithubConfig());
 /**
  * content/posts/以下のmdxファイルの一覧を取得（内部関数・キャッシュ化）
  * Cache Components機能で1時間キャッシュ
+ *
+ * エラーハンドリング: バリデーションエラーがある記事はスキップし、警告ログを出力
  * @returns キャッシュされた記事一覧（Dateフィールドは文字列）
  */
 async function listPostsCached(): Promise<PostEntry[]> {
@@ -27,39 +29,51 @@ async function listPostsCached(): Promise<PostEntry[]> {
   cacheTag("posts");
   const files = await fetcher.fetchMdxFileList("content/posts/");
 
-  // 各ファイルのfrontmatterを並列で取得
-  const entries = await Promise.all(
+  // 各ファイルのfrontmatterを並列で取得（エラー記事はスキップ）
+  const results = await Promise.allSettled(
     files.map(async (f) => {
-      try {
-        const raw = await fetcher.fetchFileContent(f.sha);
-        const { frontmatter } = parsePost(raw);
+      const raw = await fetcher.fetchFileContent(f.sha);
+      const { frontmatter } = parsePost(raw);
 
-        return {
-          slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
-          path: f.path,
-          sha: f.sha,
-          frontmatter,
-        };
-      } catch (error) {
-        if (error instanceof FrontmatterValidationError) {
-          console.warn("Skipping post due to invalid frontmatter", {
-            path: f.path,
-            issues: error.issues,
-          });
-        } else {
-          console.warn("Skipping post due to unexpected error", {
-            path: f.path,
-            error: error instanceof Error ? error.message : error,
-          });
-        }
-        return null;
-      }
+      return {
+        slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
+        path: f.path,
+        sha: f.sha,
+        frontmatter,
+      };
     })
   );
 
-  return entries.filter(
-    (entry): entry is PostEntry => entry !== null
-  );
+  const entries: PostEntry[] = [];
+
+  results.forEach((result, index) => {
+    const path = files[index]?.path ?? "unknown";
+
+    if (result.status === "fulfilled") {
+      entries.push(result.value);
+      return;
+    }
+
+    const reason = result.reason;
+    if (reason instanceof FrontmatterValidationError) {
+      console.warn("Skipping post due to invalid frontmatter", {
+        path,
+        issues: reason.issues,
+      });
+    } else if (reason instanceof Error) {
+      console.warn("Skipping post due to unexpected error", {
+        path,
+        error: reason.message,
+      });
+    } else {
+      console.warn("Skipping post due to unexpected error", {
+        path,
+        error: String(reason),
+      });
+    }
+  });
+
+  return entries;
 }
 
 /**
@@ -144,9 +158,11 @@ async function getPostBySlugCached(
 
 /**
  * スラグから記事を取得
+ *
+ * エラーハンドリング: 記事が存在しない、またはバリデーションエラーがある場合は404ページを表示
  * @param slug 記事のスラグ
  * @returns frontmatter（Dateオブジェクト復元済み）とcontent
- * @throws notFound() 記事が見つからない場合やエラー時
+ * @throws notFound() 記事が見つからない場合やバリデーションエラー時
  */
 export async function getPostBySlug(
   slug: string
