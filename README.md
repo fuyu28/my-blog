@@ -52,13 +52,11 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
   - ✅ ダークモード対応
   - ✅ シンタックスハイライト対応（MDX）
   - ✅ 記事説明文・サムネイル表示対応
+- **アクセス制御**
+  - ✅ `accessMode: "unlisted"` による直リンク限定公開
+  - ✅ `accessMode: "protected"` によるパスワード保護（記事ごとに `protectedPassword` を設定）
 
 ### 🚧 未実装機能（将来の拡張予定）
-
-- **アクセス制御**
-
-  - ⏳ `accessMode: "unlisted"` による直リンクのみアクセス制御
-  - ⏳ `accessMode: "protected"` によるパスワード保護
 
 - **記事機能**
 
@@ -173,7 +171,7 @@ topics: ["Next.js", "React"]
 | フィールド   | 型                                      | デフォルト値 | 説明                                                                              | 例         |
 | ------------ | --------------------------------------- | ------------ | --------------------------------------------------------------------------------- | ---------- |
 | `visibility` | `"public" \| "private"`                 | `"private"`  | 公開状態。`"private"`の記事は表示されない                                         | `"public"` |
-| `accessMode` | `"public" \| "unlisted" \| "protected"` | `"public"`   | アクセス制限。`"unlisted"`は直リンクのみ、`"protected"`はパスワード保護（未実装） | `"public"` |
+| `accessMode` | `"public" \| "unlisted" \| "protected"` | `"public"`   | アクセス制限。`"unlisted"`は直リンクのみ、`"protected"`はパスワード保護 | `"public"` |
 | `isDeep`     | `boolean`                               | `false`      | 詳細記事フラグ（将来の機能拡張用）                                                | `true`     |
 
 ##### オプションフィールド（任意）
@@ -185,6 +183,7 @@ topics: ["Next.js", "React"]
 | `updatedAt`   | `string` (ISO 8601) | 記事の最終更新日             | `"2025-01-10"`                                 |
 | `description` | `string`            | 記事の要約・説明文           | `"Next.js 16の新機能を解説します"`             |
 | `topics`      | `string[]`          | 記事に関連するトピック・タグ | `["Next.js", "React", "TypeScript"]`           |
+| `protectedPassword` | `string`      | `accessMode: "protected"` のとき必須となる閲覧用パスワード | `"my-article-pass"` |
 
 ##### 完全な例
 
@@ -212,6 +211,14 @@ isDeep: false
 - 必須フィールドが欠けている場合、ビルド時にエラーが発生します
 - `type`, `visibility`, `accessMode` の値は列挙型で定義されているため、指定外の値は使用できません
 - 日付フィールドは ISO 8601 形式（`YYYY-MM-DD` または `YYYY-MM-DDTHH:mm:ssZ`）で記述してください
+- **配列形式エラー**: `topics` は配列形式で記述してください（例: `["Next.js", "React"]`）
+
+### アクセス制御の挙動
+
+- `accessMode: "public"`: 一覧・静的生成の対象。従来どおり閲覧可能。
+- `accessMode: "unlisted"`: 一覧と静的生成には含まれないが、URL を知っていれば閲覧可能。
+- `accessMode: "protected"`: 一覧と静的生成には含まれない。Frontmatter の
+  `protectedPassword` でパスワード認証し、認証は 12 時間クッキーで保持。
 
 ## 開発コマンド
 

@@ -85,9 +85,11 @@ export async function listPublicPosts(
 ): Promise<PostEntry[]> {
   const allPosts = await listPosts();
 
-  // visibility: "public" のみフィルタ
+  // 公開かつ accessMode: "public" のみフィルタ
   const publicPosts = allPosts.filter(
-    (post) => post.frontmatter.visibility === "public"
+    (post) =>
+      post.frontmatter.visibility === "public" &&
+      post.frontmatter.accessMode === "public"
   );
 
   // 日付順でソート（新しい順）

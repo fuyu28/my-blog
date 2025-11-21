@@ -1,6 +1,70 @@
-import { getPostBySlug, listPublicPosts } from "@/lib/content/posts";
-import { MDXRemote } from "next-mdx-remote-client/rsc";
+import { createHash } from "crypto";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { MDXRemote } from "next-mdx-remote-client/rsc";
+import { getPostBySlug, listPublicPosts } from "@/lib/content/posts";
+import { ProtectedPostGate } from "./ProtectedPostGate";
+
+export type ProtectedPostActionState = {
+  success?: boolean;
+  error?: string;
+};
+
+function protectedCookieName(slug: string) {
+  return `protected-post-${slug}`;
+}
+
+function sha256(value: string) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function hasProtectedAccess(slug: string, expectedHash: string): boolean {
+  const cookie = cookies().get(protectedCookieName(slug));
+  return cookie?.value === expectedHash;
+}
+
+function createVerifyProtectedPostPassword(
+  slug: string,
+  expectedHash: string
+) {
+  return async function verifyProtectedPostPassword(
+    _prevState: ProtectedPostActionState | undefined,
+    formData: FormData
+  ): Promise<ProtectedPostActionState> {
+    "use server";
+
+    const input = formData.get("password");
+    if (typeof input !== "string" || input.length === 0) {
+      return { error: "パスワードを入力してください。" };
+    }
+
+    const inputHash = sha256(input);
+    if (inputHash !== expectedHash) {
+      return { error: "パスワードが一致しません。" };
+    }
+
+    cookies().set(protectedCookieName(slug), expectedHash, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 12, // 12 hours
+    });
+
+    return { success: true };
+  };
+}
+
+async function missingProtectedPasswordAction(
+  _prevState: ProtectedPostActionState | undefined,
+  _formData: FormData
+): Promise<ProtectedPostActionState> {
+  "use server";
+  return {
+    error:
+      'accessMode: "protected" の記事には protectedPassword を設定してください。',
+  };
+}
 
 // これで静的パスを事前に生成（公開記事のみ）
 export async function generateStaticParams() {
@@ -19,6 +83,32 @@ export default async function PostPage({
   // visibility: "private"は非表示
   if (frontmatter.visibility === "private") {
     notFound();
+  }
+
+  const isProtected = frontmatter.accessMode === "protected";
+  const password = frontmatter.protectedPassword;
+  const passwordHash = password ? sha256(password) : null;
+  const canViewProtected =
+    !isProtected || (passwordHash && hasProtectedAccess(slug, passwordHash));
+
+  if (isProtected && !canViewProtected) {
+    if (!password || !passwordHash) {
+      return (
+        <ProtectedPostGate
+          title={frontmatter.title}
+          verifyAction={missingProtectedPasswordAction}
+          hasPassword={false}
+        />
+      );
+    }
+
+    return (
+      <ProtectedPostGate
+        title={frontmatter.title}
+        verifyAction={createVerifyProtectedPostPassword(slug, passwordHash)}
+        hasPassword
+      />
+    );
   }
 
   return (

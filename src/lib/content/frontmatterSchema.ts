@@ -11,6 +11,8 @@ export const FrontmatterSchema = z.object({
   visibility: z.enum(["public", "private"]).default("private"),
   // 公開形式 (全体公開 / 限定公開 / パスワード付き公開)
   accessMode: z.enum(["public", "unlisted", "protected"]).default("public"),
+  // 個別パスワード（protected のとき必須）
+  protectedPassword: z.string().min(1, "パスワードは空にできません").optional(),
   // Deep状態可否
   isDeep: z.boolean().default(false),
   // 公開日
@@ -21,6 +23,15 @@ export const FrontmatterSchema = z.object({
   description: z.string().optional(),
   // タグ
   topics: z.array(z.string()).optional(),
+}).superRefine((data, ctx) => {
+  // protected のときはパスワードを必須にする
+  if (data.accessMode === "protected" && !data.protectedPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["protectedPassword"],
+      message: "accessMode: \"protected\" の場合、protectedPassword を指定してください。",
+    });
+  }
 });
 
 export type Frontmatter = z.infer<typeof FrontmatterSchema>;
