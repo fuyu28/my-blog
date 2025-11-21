@@ -1,6 +1,16 @@
 import matter from "gray-matter";
 import { FrontmatterSchema, Frontmatter } from "./frontmatterSchema";
 
+export class FrontmatterValidationError extends Error {
+  issues: string[];
+
+  constructor(issues: string[]) {
+    super("Invalid frontmatter");
+    this.name = "FrontmatterValidationError";
+    this.issues = issues;
+  }
+}
+
 export interface ParsedPost {
   frontmatter: Frontmatter;
   content: string;
@@ -18,18 +28,12 @@ export function parsePost(rawMdx: string): ParsedPost {
   const result = FrontmatterSchema.safeParse(data);
 
   if (!result.success) {
-    // バリデーションエラーの詳細を表示
-    console.error("❌ Frontmatter validation failed:");
-    console.error(JSON.stringify(result.error.format(), null, 2));
-
-    // エラーメッセージを構築
     const errorMessages = result.error.issues.map(
-      (issue) => `  - ${issue.path.join(".")}: ${issue.message}`
+      (issue) => `${issue.path.join(".") || "unknown"}: ${issue.message}`
     );
 
-    throw new Error(
-      `Invalid frontmatter:\n${errorMessages.join("\n")}\n\nReceived data:\n${JSON.stringify(data, null, 2)}`
-    );
+    // ログは呼び出し側で扱うため、ここでは詳細を投げない
+    throw new FrontmatterValidationError(errorMessages);
   }
 
   return { frontmatter: result.data, content };

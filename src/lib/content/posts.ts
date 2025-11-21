@@ -2,7 +2,7 @@ import { createContentFetcher } from "../github/contentFetch";
 import { createOctokit } from "../github/client";
 import { getGithubConfig } from "../github/config";
 import { Frontmatter } from "./frontmatterSchema";
-import { parsePost } from "./parsePost";
+import { FrontmatterValidationError, parsePost } from "./parsePost";
 import { notFound } from "next/navigation";
 import { cacheLife, cacheTag } from "next/cache";
 
@@ -41,10 +41,17 @@ async function listPostsCached(): Promise<PostEntry[]> {
           frontmatter,
         };
       } catch (error) {
-        console.warn("Skipping post due to invalid frontmatter", {
-          path: f.path,
-          error: error instanceof Error ? error.message : error,
-        });
+        if (error instanceof FrontmatterValidationError) {
+          console.warn("Skipping post due to invalid frontmatter", {
+            path: f.path,
+            issues: error.issues,
+          });
+        } else {
+          console.warn("Skipping post due to unexpected error", {
+            path: f.path,
+            error: error instanceof Error ? error.message : error,
+          });
+        }
         return null;
       }
     })
@@ -149,7 +156,12 @@ export async function getPostBySlug(
     return restoreDates(post);
   } catch (error) {
     // エラー内容をログに記録
-    if (error instanceof Error) {
+    if (error instanceof FrontmatterValidationError) {
+      console.warn("Frontmatter invalid, returning 404", {
+        path: `content/posts/${slug}.mdx`,
+        issues: error.issues,
+      });
+    } else if (error instanceof Error) {
       console.error(`Failed to fetch post: ${slug}`, {
         path: `content/posts/${slug}.mdx`,
         error: error.message,
