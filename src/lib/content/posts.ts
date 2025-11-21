@@ -30,19 +30,29 @@ async function listPostsCached(): Promise<PostEntry[]> {
   // 各ファイルのfrontmatterを並列で取得
   const entries = await Promise.all(
     files.map(async (f) => {
-      const raw = await fetcher.fetchFileContent(f.sha);
-      const { frontmatter } = parsePost(raw);
+      try {
+        const raw = await fetcher.fetchFileContent(f.sha);
+        const { frontmatter } = parsePost(raw);
 
-      return {
-        slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
-        path: f.path,
-        sha: f.sha,
-        frontmatter,
-      };
+        return {
+          slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
+          path: f.path,
+          sha: f.sha,
+          frontmatter,
+        };
+      } catch (error) {
+        console.warn("Skipping post due to invalid frontmatter", {
+          path: f.path,
+          error: error instanceof Error ? error.message : error,
+        });
+        return null;
+      }
     })
   );
 
-  return entries;
+  return entries.filter(
+    (entry): entry is PostEntry => entry !== null
+  );
 }
 
 /**
