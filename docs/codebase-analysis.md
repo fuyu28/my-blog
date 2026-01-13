@@ -20,7 +20,7 @@
 
 ## プロジェクト概要
 
-GitHub API を使用して MDX コンテンツを取得し、静的サイト生成を行うブログアプリケーション。
+GitHub API を使用して Markdown コンテンツを取得し、静的サイト生成を行うブログアプリケーション。
 Next.js 16 の App Router アーキテクチャを採用し、TurboPack を使用して最適化されたビルドを実現。
 
 ### 技術スタック
@@ -29,7 +29,7 @@ Next.js 16 の App Router アーキテクチャを採用し、TurboPack を使�
 - **ランタイム**: React 19.2.0
 - **言語**: TypeScript 5.x (strict mode)
 - **スタイリング**: Tailwind CSS v4
-- **コンテンツ**: MDX (next-mdx-remote-client)
+- **コンテンツ**: Markdown (react-markdown + remark-gfm)
 - **API**: Octokit (GitHub API)
 - **バリデーション**: Zod 4.x
 - **パース**: gray-matter
@@ -61,7 +61,6 @@ src/
 ### ✅ 実装済み
 
 1. **Not-found ページ** (`src/app/not-found.tsx`)
-
    - 404 エラーページの実装
    - ユーザーフレンドリーなエラー表示
    - トップページへの戻るリンク
@@ -79,7 +78,6 @@ src/
    - 404 ページへの適切なリダイレクト
 
 3. **Frontmatter 表示** (`src/app/post/[slug]/page.tsx:26-38`)
-
    - タイトル、最終更新日の表示
    - 日本語ローカライズ
 
@@ -88,7 +86,7 @@ src/
    ```typescript
    // レイヤー1: React cache() - 同一ビルド内の重複排除
    import { cache } from "react";
-   const fetchMdxFileList = cache(async (pathPrefix) => { ... });
+   const fetchMarkdownFileList = cache(async (pathPrefix) => { ... });
 
    // レイヤー2: unstable_cache() - ビルド間で永続キャッシュ
    import { unstable_cache } from "next/cache";
@@ -140,7 +138,7 @@ src/
        // API呼び出し
      },
      3,
-     1000
+     1000,
    );
    ```
 
@@ -342,13 +340,13 @@ if (!result.success) {
   console.error(JSON.stringify(result.error.format(), null, 2));
 
   const errorMessages = result.error.issues.map(
-    (issue) => `  - ${issue.path.join(".")}: ${issue.message}`
+    (issue) => `  - ${issue.path.join(".")}: ${issue.message}`,
   );
 
   throw new Error(
     `Invalid frontmatter:\n${errorMessages.join(
-      "\n"
-    )}\n\nReceived data:\n${JSON.stringify(data, null, 2)}`
+      "\n",
+    )}\n\nReceived data:\n${JSON.stringify(data, null, 2)}`,
   );
 }
 ```
@@ -372,12 +370,10 @@ if (!result.success) {
 ```typescript
 // listPublicPosts()にソート機能を実装
 export async function listPublicPosts(
-  sortBy: "updatedAt" | "publishedAt" = "updatedAt"
+  sortBy: "updatedAt" | "publishedAt" = "updatedAt",
 ): Promise<PostEntry[]> {
   const allPosts = await listPosts();
-  const publicPosts = allPosts.filter(
-    (post) => post.frontmatter.visibility === "public"
-  );
+  const publicPosts = allPosts.filter((post) => post.frontmatter.visibility === "public");
 
   // 日付順でソート（新しい順）
   return publicPosts.sort((a, b) => {
@@ -618,7 +614,7 @@ export const revalidate = 3600;
 
 **推奨機能**:
 
-- MDX の見出しから自動生成
+- Markdown の見出しから自動生成
 - スクロールに応じてアクティブな項目をハイライト
 
 ##### 8.8 未実装の accessMode 機能
@@ -630,26 +626,19 @@ export const revalidate = 3600;
 - `unlisted`: 限定公開機能が未実装
 - `protected`: パスワード保護機能が未実装
 
-##### 8.9 MDX カスタムコンポーネント
+##### 8.9 Markdown カスタムレンダリング
 
-**場所**: `mdx-components.tsx`
+**場所**: `src/app/post/[slug]/page.tsx`
 
 **問題**:
 
-```typescript
-// 現在は空
-export function useMDXComponents(components: MDXComponents): MDXComponents {
-  return {
-    ...components,
-  };
-}
-```
+- Markdown 用のカスタムレンダリングが未実装
 
 **推奨実装**:
 
-- カスタムコンポーネントの追加（Callout, Warning, Info など）
-- 画像の最適化コンポーネント
-- リンクカードコンポーネント
+- カスタムレンダリングの追加（Callout, Warning, Info など）
+- 画像の最適化レンダリング
+- リンクカードレンダリング
 
 ##### 8.10 構造化データ (JSON-LD)
 
@@ -694,18 +683,18 @@ const jsonLd = {
 
 ### 🟡 中優先度（近いうちに対応すべき）
 
-| #   | 項目                        | 状態      | 場所                       | 理由             |
-| --- | --------------------------- | --------- | -------------------------- | ---------------- |
-| 6   | エラーハンドリングの強化    | ✅ 完了   | `posts.ts`, `parsePost.ts` | デバッグ容易性   |
-| 7   | タグ機能の実装              | 🔲 未実装 | 新規ページ                 | コンテンツ発見性 |
-| 8   | 記事タイプバッジ            | 🔲 未実装 | `page.tsx`                 | カテゴリ識別     |
-| 9   | カスタム MDX コンポーネント | 🔲 未実装 | `mdx-components.tsx`       | コンテンツ表現力 |
-| 10  | コードブロックの機能強化    | 🔲 未実装 | `post/[slug]/page.tsx`     | 読みやすさ       |
-| 11  | ダークモードトグル          | 🔲 未実装 | `layout.tsx`               | UX 向上          |
-| 12  | ローディング・エラーページ  | 🔲 未実装 | `loading.tsx`, `error.tsx` | UX 向上          |
-| 13  | ISR 設定                    | ✅ 完了   | 各ページ                   | パフォーマンス   |
-| 14  | サイトマップ・RSS           | 🔲 未実装 | 新規ファイル               | SEO・購読性      |
-| 15  | OGP 画像生成                | 🔲 未実装 | `app/api/og/`              | SNS シェア       |
+| #   | 項目                           | 状態      | 場所                           | 理由             |
+| --- | ------------------------------ | --------- | ------------------------------ | ---------------- |
+| 6   | エラーハンドリングの強化       | ✅ 完了   | `posts.ts`, `parsePost.ts`     | デバッグ容易性   |
+| 7   | タグ機能の実装                 | 🔲 未実装 | 新規ページ                     | コンテンツ発見性 |
+| 8   | 記事タイプバッジ               | 🔲 未実装 | `page.tsx`                     | カテゴリ識別     |
+| 9   | カスタム Markdown レンダリング | 🔲 未実装 | `src/app/post/[slug]/page.tsx` | コンテンツ表現力 |
+| 10  | コードブロックの機能強化       | 🔲 未実装 | `post/[slug]/page.tsx`         | 読みやすさ       |
+| 11  | ダークモードトグル             | 🔲 未実装 | `layout.tsx`                   | UX 向上          |
+| 12  | ローディング・エラーページ     | 🔲 未実装 | `loading.tsx`, `error.tsx`     | UX 向上          |
+| 13  | ISR 設定                       | ✅ 完了   | 各ページ                       | パフォーマンス   |
+| 14  | サイトマップ・RSS              | 🔲 未実装 | 新規ファイル                   | SEO・購読性      |
+| 15  | OGP 画像生成                   | 🔲 未実装 | `app/api/og/`                  | SNS シェア       |
 
 ### 🟢 低優先度（余裕があれば対応）
 
@@ -759,7 +748,7 @@ const jsonLd = {
   - タグ一覧ページ
   - タグフィルタリングページ
 - [ ] 記事タイプバッジの表示
-- [ ] カスタム MDX コンポーネント
+- [ ] カスタム Markdown レンダリング
   - Callout、Warning、Info
   - 画像最適化
   - リンクカード
