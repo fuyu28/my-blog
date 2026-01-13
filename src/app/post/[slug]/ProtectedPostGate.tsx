@@ -8,16 +8,12 @@ interface Props {
   title: string;
   verifyAction: (
     state: ProtectedPostActionState | undefined,
-    formData: FormData
+    formData: FormData,
   ) => Promise<ProtectedPostActionState>;
   hasPassword: boolean;
 }
 
-export function ProtectedPostGate({
-  title,
-  verifyAction,
-  hasPassword,
-}: Props) {
+export function ProtectedPostGate({ title, verifyAction, hasPassword }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(verifyAction, {
     success: false,
@@ -34,19 +30,14 @@ export function ProtectedPostGate({
   return (
     <div className="rounded-2xl border border-amber-200/80 bg-amber-50/40 p-8 shadow-sm ring-1 ring-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:ring-amber-900/40">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold text-amber-900 dark:text-amber-100">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-semibold text-amber-900 dark:text-amber-100">{title}</h1>
         <p className="text-sm text-amber-900/80 dark:text-amber-100/80">
           この投稿はパスワードで保護されています。
         </p>
       </div>
 
       {hasPassword ? (
-        <form
-          action={formAction}
-          className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
-        >
+        <form action={formAction} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="flex-1">
             <span className="sr-only">パスワード</span>
             <input
@@ -78,9 +69,7 @@ export function ProtectedPostGate({
       )}
 
       {state?.error && (
-        <p className="mt-3 text-sm font-medium text-amber-800 dark:text-amber-200">
-          {state.error}
-        </p>
+        <p className="mt-3 text-sm font-medium text-amber-800 dark:text-amber-200">{state.error}</p>
       )}
     </div>
   );

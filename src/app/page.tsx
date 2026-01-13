@@ -7,12 +7,8 @@ export default async function HomePage() {
   return (
     <section className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 tracking-tight">
-          Blog
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          最近書いたやつ
-        </p>
+        <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 tracking-tight">Blog</h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">最近書いたやつ</p>
       </header>
 
       <ul className="grid gap-6">
@@ -39,8 +35,7 @@ export default async function HomePage() {
 
                 {post.frontmatter.updatedAt && (
                   <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
-                    last updated:{" "}
-                    {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
                   </div>
                 )}
               </div>

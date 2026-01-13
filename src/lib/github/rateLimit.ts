@@ -15,9 +15,7 @@ export interface RateLimitInfo {
  * @param octokit - Octokitインスタンス
  * @returns レートリミット情報
  */
-export async function getRateLimitInfo(
-  octokit: Octokit
-): Promise<RateLimitInfo> {
+export async function getRateLimitInfo(octokit: Octokit): Promise<RateLimitInfo> {
   const response = await octokit.request("GET /rate_limit");
   const { core } = response.data.resources;
 
@@ -34,25 +32,20 @@ export async function getRateLimitInfo(
  * @param octokit - Octokitインスタンス
  * @param threshold - 警告を出す閾値（デフォルト: 100）
  */
-export async function checkRateLimit(
-  octokit: Octokit,
-  threshold: number = 100
-): Promise<void> {
+export async function checkRateLimit(octokit: Octokit, threshold: number = 100): Promise<void> {
   const info = await getRateLimitInfo(octokit);
 
   if (info.remaining < threshold) {
     const resetTime = info.reset.toLocaleString("ja-JP");
     console.warn(
-      `⚠️ GitHub API レートリミット警告: 残り ${info.remaining}/${info.limit} (リセット: ${resetTime})`
+      `⚠️ GitHub API レートリミット警告: 残り ${info.remaining}/${info.limit} (リセット: ${resetTime})`,
     );
   }
 
   if (info.remaining === 0) {
-    const waitTime = Math.ceil(
-      (info.reset.getTime() - Date.now()) / 1000 / 60
-    );
+    const waitTime = Math.ceil((info.reset.getTime() - Date.now()) / 1000 / 60);
     throw new Error(
-      `GitHub APIのレートリミットに達しました。${waitTime}分後 (${info.reset.toLocaleString("ja-JP")}) にリセットされます。`
+      `GitHub APIのレートリミットに達しました。${waitTime}分後 (${info.reset.toLocaleString("ja-JP")}) にリセットされます。`,
     );
   }
 }
@@ -67,7 +60,7 @@ export async function checkRateLimit(
 export async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
   let lastError: Error | undefined;
 
@@ -95,9 +88,7 @@ export async function withRetry<T>(
 
       // エクスポネンシャルバックオフ: 1秒、2秒、4秒...
       const delay = baseDelay * Math.pow(2, attempt);
-      console.warn(
-        `⚠️ API呼び出し失敗 (試行 ${attempt + 1}/${maxRetries + 1}): ${error.message}`
-      );
+      console.warn(`⚠️ API呼び出し失敗 (試行 ${attempt + 1}/${maxRetries + 1}): ${error.message}`);
       console.warn(`   ${delay}ms後にリトライします...`);
 
       await new Promise((resolve) => setTimeout(resolve, delay));

@@ -3,11 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Footer } from "@/components/Footer";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="ja"
@@ -23,9 +19,7 @@ export default function RootLayout({
               Fuyu`s blog
             </Link>
 
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              技術メモとか雑記とか
-            </p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">技術メモとか雑記とか</p>
           </div>
         </header>
 

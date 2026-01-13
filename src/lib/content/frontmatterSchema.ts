@@ -2,22 +2,22 @@ import { z } from "zod";
 
 const optionalString = z.preprocess(
   (value) => (value === null ? undefined : value),
-  z.string().optional()
+  z.string().optional(),
 );
 
 const optionalDate = z.preprocess(
   (value) => (value === null ? undefined : value),
-  z.coerce.date().optional()
+  z.coerce.date().optional(),
 );
 
 const optionalStringArray = z.preprocess(
   (value) => (value === null ? undefined : value),
-  z.array(z.string()).optional()
+  z.array(z.string()).optional(),
 );
 
 const optionalPassword = z.preprocess(
   (value) => (value === null ? undefined : value),
-  z.string().min(1, "パスワードは空にできません").optional()
+  z.string().min(1, "パスワードは空にできません").optional(),
 );
 
 export const FrontmatterSchema = z
@@ -51,8 +51,7 @@ export const FrontmatterSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["protectedPassword"],
-        message:
-          'accessMode: "protected" の場合、protectedPassword を指定してください。',
+        message: 'accessMode: "protected" の場合、protectedPassword を指定してください。',
       });
     }
   });
