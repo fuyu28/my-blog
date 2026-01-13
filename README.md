@@ -1,10 +1,10 @@
 # Fuyu's Blog
 
-Next.js 16 と GitHub API を使った、MDX ベースのブログシステムです。
+Next.js 16 と GitHub API を使った、Markdown ベースのブログシステムです。
 
 ## 特徴
 
-- 📝 **GitHub ベースのコンテンツ管理**: MDX ファイルを GitHub リポジトリから取得
+- 📝 **GitHub ベースのコンテンツ管理**: Markdown ファイルを GitHub リポジトリから取得
 - ⚡ **Next.js 16 + TurboPack**: 高速なビルドと開発体験
 - 🎨 **Tailwind CSS v4**: モダンなデザインシステム
 - 💾 **効率的なキャッシュ戦略**: Cache Components による 1 時間 TTL のキャッシュ
@@ -16,15 +16,13 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
 ### ✅ 実装済み機能
 
 - **コアシステム**
-
   - ✅ Next.js 16 App Router によるルーティング
-  - ✅ GitHub API 経由での MDX コンテンツ取得
+  - ✅ GitHub API 経由での Markdown コンテンツ取得
   - ✅ GitHub App 認証による安全な API アクセス
   - ✅ Zod による Frontmatter スキーマバリデーション
-  - ✅ MDX レンダリング（next-mdx-remote-client）
+  - ✅ Markdown レンダリング（react-markdown + remark-gfm）
 
 - **キャッシュ機能**
-
   - ✅ Cache Components（`"use cache"`）による記事一覧のキャッシュ
   - ✅ 個別記事のキャッシュ（slug 別 cache tag）
   - ✅ 1 時間 TTL のキャッシュライフサイクル
@@ -32,7 +30,6 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
   - ✅ Date 型の自動復元機能
 
 - **記事管理**
-
   - ✅ 記事一覧表示（公開記事のみ）
   - ✅ 個別記事ページ
   - ✅ `visibility` による公開/非公開制御
@@ -41,7 +38,6 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
   - ✅ Frontmatter による記事メタデータ管理
 
 - **エラーハンドリング**
-
   - ✅ GitHub API レート制限チェック
   - ✅ 指数バックオフによるリトライ機構（最大 3 回）
   - ✅ 詳細なエラーログ出力
@@ -53,7 +49,7 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
 - **UI/UX**
   - ✅ レスポンシブデザイン
   - ✅ ダークモード対応
-  - ✅ シンタックスハイライト対応（MDX）
+  - ✅ シンタックスハイライト対応（Markdown）
   - ✅ 記事説明文・サムネイル表示対応
 - **アクセス制御**
   - ✅ `accessMode: "unlisted"` による直リンク限定公開
@@ -62,7 +58,6 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
 ### 🚧 未実装機能（将来の拡張予定）
 
 - **記事機能**
-
   - ⏳ `isDeep` フラグによる詳細記事の特別表示
   - ⏳ タグ/トピックによる記事フィルタリング
   - ⏳ 記事検索機能
@@ -70,12 +65,10 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
   - ⏳ 目次（Table of Contents）自動生成
 
 - **パフォーマンス**
-
   - ⏳ 画像最適化（next/image 統合）
   - ⏳ OGP 画像の自動生成
 
 - **分析・管理**
-
   - ⏳ Google Analytics 統合
   - ⏳ RSS フィード生成
   - ⏳ サイトマップ自動生成
@@ -92,7 +85,7 @@ Next.js 16 と GitHub API を使った、MDX ベースのブログシステム�
 - **ランタイム**: React 19.2.0
 - **言語**: TypeScript (strict mode)
 - **スタイリング**: Tailwind CSS v4
-- **MDX 処理**: next-mdx-remote-client
+- **Markdown 処理**: react-markdown + remark-gfm
 - **バリデーション**: Zod
 - **GitHub API**: Octokit
 
@@ -137,11 +130,11 @@ GITHUB_REF=main  # ブランチ名（デフォルト: main）
 
 ### 4. コンテンツリポジトリの準備
 
-ブログ記事用のリポジトリに`content/posts/`ディレクトリを作成し、MDX ファイルを配置します。
+ブログ記事用のリポジトリに`content/posts/`ディレクトリを作成し、Markdown ファイル（`.md`）を配置します。
 
-#### MDX ファイルの例
+#### Markdown ファイルの例
 
-```mdx
+```md
 ---
 title: "初めての記事"
 type: "tech"
@@ -160,7 +153,7 @@ topics: ["Next.js", "React"]
 
 #### Frontmatter フィールドの詳細
 
-すべての MDX ファイルは YAML 形式の Frontmatter でメタデータを定義します。Zod スキーマによる厳密なバリデーションが行われます。
+すべての Markdown ファイルは YAML 形式の Frontmatter でメタデータを定義します。Zod スキーマによる厳密なバリデーションが行われます。
 
 ##### 必須フィールド
 
@@ -171,26 +164,26 @@ topics: ["Next.js", "React"]
 
 ##### オプションフィールド（デフォルト値あり）
 
-| フィールド   | 型                                      | デフォルト値 | 説明                                                                              | 例         |
-| ------------ | --------------------------------------- | ------------ | --------------------------------------------------------------------------------- | ---------- |
-| `visibility` | `"public" \| "private"`                 | `"private"`  | 公開状態。`"private"`の記事は表示されない                                         | `"public"` |
+| フィールド   | 型                                      | デフォルト値 | 説明                                                                    | 例         |
+| ------------ | --------------------------------------- | ------------ | ----------------------------------------------------------------------- | ---------- |
+| `visibility` | `"public" \| "private"`                 | `"private"`  | 公開状態。`"private"`の記事は表示されない                               | `"public"` |
 | `accessMode` | `"public" \| "unlisted" \| "protected"` | `"public"`   | アクセス制限。`"unlisted"`は直リンクのみ、`"protected"`はパスワード保護 | `"public"` |
-| `isDeep`     | `boolean`                               | `false`      | 詳細記事フラグ（将来の機能拡張用）                                                | `true`     |
+| `isDeep`     | `boolean`                               | `false`      | 詳細記事フラグ（将来の機能拡張用）                                      | `true`     |
 
 ##### オプションフィールド（任意）
 
-| フィールド    | 型                  | 説明                         | 例                                             |
-| ------------- | ------------------- | ---------------------------- | ---------------------------------------------- |
-| `thumbnail`   | `string`            | サムネイル画像の URL         | `"https://example.com/image.png"`              |
-| `publishedAt` | `string` (ISO 8601) | 記事の公開日                 | `"2025-01-05"` または `"2025-01-05T10:00:00Z"` |
-| `updatedAt`   | `string` (ISO 8601) | 記事の最終更新日             | `"2025-01-10"`                                 |
-| `description` | `string`            | 記事の要約・説明文           | `"Next.js 16の新機能を解説します"`             |
-| `topics`      | `string[]`          | 記事に関連するトピック・タグ | `["Next.js", "React", "TypeScript"]`           |
-| `protectedPassword` | `string`      | `accessMode: "protected"` のとき必須となる閲覧用パスワード | `"my-article-pass"` |
+| フィールド          | 型                  | 説明                                                       | 例                                             |
+| ------------------- | ------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
+| `thumbnail`         | `string`            | サムネイル画像の URL                                       | `"https://example.com/image.png"`              |
+| `publishedAt`       | `string` (ISO 8601) | 記事の公開日                                               | `"2025-01-05"` または `"2025-01-05T10:00:00Z"` |
+| `updatedAt`         | `string` (ISO 8601) | 記事の最終更新日                                           | `"2025-01-10"`                                 |
+| `description`       | `string`            | 記事の要約・説明文                                         | `"Next.js 16の新機能を解説します"`             |
+| `topics`            | `string[]`          | 記事に関連するトピック・タグ                               | `["Next.js", "React", "TypeScript"]`           |
+| `protectedPassword` | `string`            | `accessMode: "protected"` のとき必須となる閲覧用パスワード | `"my-article-pass"`                            |
 
 ##### 完全な例
 
-```mdx
+```md
 ---
 title: "Next.js 16 の Cache Components を使ってみた"
 type: "tech"
@@ -259,7 +252,7 @@ my-blog/
 │   │   │   └── contentFetch.ts  # コンテンツ取得
 │   │   └── content/          # コンテンツ処理
 │   │       ├── posts.ts      # 記事取得API（キャッシュあり）
-│   │       ├── parsePost.ts  # MDXパース
+│   │       ├── parsePost.ts  # Markdownパース
 │   │       └── frontmatterSchema.ts  # Zodスキーマ
 │   └── env.d.ts              # 環境変数の型定義
 ├── CLAUDE.md                  # Claude Code向けドキュメント
@@ -343,7 +336,7 @@ Error: Cannot find module '@/lib/...'
 開発サーバーのログに以下のような警告が表示される場合：
 
 ```
-⚠️  記事をスキップしました: content/posts/example.mdx
+⚠️  記事をスキップしました: content/posts/example.md
    理由: Invalid frontmatter
 ⚠️  1件の記事がバリデーションエラーによりスキップされました
 ```

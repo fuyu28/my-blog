@@ -1,7 +1,8 @@
 import { createHash } from "crypto";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote-client/rsc";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getPostBySlug, listPublicPosts } from "@/lib/content/posts";
 import { ProtectedPostGate } from "./ProtectedPostGate";
 
@@ -23,13 +24,10 @@ function hasProtectedAccess(slug: string, expectedHash: string): boolean {
   return cookie?.value === expectedHash;
 }
 
-function createVerifyProtectedPostPassword(
-  slug: string,
-  expectedHash: string
-) {
+function createVerifyProtectedPostPassword(slug: string, expectedHash: string) {
   return async function verifyProtectedPostPassword(
     _prevState: ProtectedPostActionState | undefined,
-    formData: FormData
+    formData: FormData,
   ): Promise<ProtectedPostActionState> {
     "use server";
 
@@ -57,12 +55,11 @@ function createVerifyProtectedPostPassword(
 
 async function missingProtectedPasswordAction(
   _prevState: ProtectedPostActionState | undefined,
-  _formData: FormData
+  _formData: FormData,
 ): Promise<ProtectedPostActionState> {
   "use server";
   return {
-    error:
-      'accessMode: "protected" の記事には protectedPassword を設定してください。',
+    error: 'accessMode: "protected" の記事には protectedPassword を設定してください。',
   };
 }
 
@@ -72,11 +69,7 @@ export async function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
 }
 
-export default async function PostPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function PostPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
   const { frontmatter, content } = await getPostBySlug(slug);
 
@@ -88,8 +81,7 @@ export default async function PostPage({
   const isProtected = frontmatter.accessMode === "protected";
   const password = frontmatter.protectedPassword;
   const passwordHash = password ? sha256(password) : null;
-  const canViewProtected =
-    !isProtected || (passwordHash && hasProtectedAccess(slug, passwordHash));
+  const canViewProtected = !isProtected || (passwordHash && hasProtectedAccess(slug, passwordHash));
 
   if (isProtected && !canViewProtected) {
     if (!password || !passwordHash) {
@@ -121,9 +113,7 @@ export default async function PostPage({
 
         <div className="flex flex-col gap-2 text-xs text-zinc-500 dark:text-zinc-400 sm:flex-row sm:items-center sm:gap-4">
           {frontmatter.updatedAt !== undefined && (
-            <span>
-              最終更新: {frontmatter.updatedAt.toLocaleDateString("ja-JP")}
-            </span>
+            <span>最終更新: {frontmatter.updatedAt.toLocaleDateString("ja-JP")}</span>
           )}
         </div>
 
@@ -145,7 +135,9 @@ export default async function PostPage({
           max-w-none
         "
       >
-        <MDXRemote source={content} />
+        <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
+          {content}
+        </ReactMarkdown>
       </div>
     </article>
   );

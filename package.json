@@ -6,32 +6,30 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "oxlint .",
+    "format": "oxfmt ."
   },
   "dependencies": {
-    "@mdx-js/loader": "^3.1.1",
-    "@mdx-js/react": "^3.1.1",
-    "@octokit/auth-app": "^8.1.1",
-    "@types/mdx": "^2.0.13",
+    "@octokit/auth-app": "^8.1.2",
     "gray-matter": "^4.0.3",
-    "next": "16.0.1",
-    "next-mdx-remote-client": "^2.1.7",
-    "octokit": "^5.0.4",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "zod": "^4.1.12"
+    "next": "16.1.1",
+    "octokit": "^5.0.5",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
-    "@types/node": "^20",
+    "@types/node": "^25.0.7",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "oxfmt": "^0.24.0",
+    "oxlint": "^1.39.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "@types/react": "19.2.2",

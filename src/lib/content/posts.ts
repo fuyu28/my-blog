@@ -17,7 +17,7 @@ export interface PostEntry {
 const fetcher = createContentFetcher(createOctokit(), getGithubConfig());
 
 /**
- * content/posts/以下のmdxファイルの一覧を取得（内部関数・キャッシュ化）
+ * content/posts/以下のmdファイルの一覧を取得（内部関数・キャッシュ化）
  * Cache Components機能で1時間キャッシュ
  *
  * エラーハンドリング: バリデーションエラーがある記事はスキップし、警告ログを出力
@@ -27,7 +27,7 @@ async function listPostsCached(): Promise<PostEntry[]> {
   "use cache";
   cacheLife("hours");
   cacheTag("posts");
-  const files = await fetcher.fetchMdxFileList("content/posts/");
+  const files = await fetcher.fetchMarkdownFileList("content/posts/");
 
   // 各ファイルのfrontmatterを並列で取得（エラー記事はスキップ）
   const results = await Promise.allSettled(
@@ -36,12 +36,12 @@ async function listPostsCached(): Promise<PostEntry[]> {
       const { frontmatter } = parsePost(raw);
 
       return {
-        slug: f.path.replace(/^content\/posts\//, "").replace(/\.mdx$/, ""),
+        slug: f.path.replace(/^content\/posts\//, "").replace(/\.md$/, ""),
         path: f.path,
         sha: f.sha,
         frontmatter,
       };
-    })
+    }),
   );
 
   const entries: PostEntry[] = [];
@@ -90,15 +90,13 @@ function restoreDates<T extends { frontmatter: Frontmatter }>(item: T): T {
       publishedAt: item.frontmatter.publishedAt
         ? new Date(item.frontmatter.publishedAt)
         : undefined,
-      updatedAt: item.frontmatter.updatedAt
-        ? new Date(item.frontmatter.updatedAt)
-        : undefined,
+      updatedAt: item.frontmatter.updatedAt ? new Date(item.frontmatter.updatedAt) : undefined,
     },
   };
 }
 
 /**
- * content/posts/以下のmdxファイルの一覧を取得
+ * content/posts/以下のmdファイルの一覧を取得
  * @returns slug, path, sha, frontmatter（Dateオブジェクト復元済み）
  */
 export async function listPosts(): Promise<PostEntry[]> {
@@ -112,15 +110,13 @@ export async function listPosts(): Promise<PostEntry[]> {
  * @returns 公開記事のみの配列（新しい順）
  */
 export async function listPublicPosts(
-  sortBy: "updatedAt" | "publishedAt" = "updatedAt"
+  sortBy: "updatedAt" | "publishedAt" = "updatedAt",
 ): Promise<PostEntry[]> {
   const allPosts = await listPosts();
 
   // 公開かつ accessMode: "public" のみフィルタ
   const publicPosts = allPosts.filter(
-    (post) =>
-      post.frontmatter.visibility === "public" &&
-      post.frontmatter.accessMode === "public"
+    (post) => post.frontmatter.visibility === "public" && post.frontmatter.accessMode === "public",
   );
 
   // 日付順でソート（新しい順）
@@ -140,13 +136,13 @@ export async function listPublicPosts(
  * @returns キャッシュされた記事データ（Dateフィールドは文字列）
  */
 async function getPostBySlugCached(
-  slug: string
+  slug: string,
 ): Promise<{ frontmatter: Frontmatter; content: string }> {
   "use cache";
   cacheLife("hours");
   cacheTag("posts", `post-${slug}`);
 
-  const path = `content/posts/${slug}.mdx`;
+  const path = `content/posts/${slug}.md`;
   const raw = await fetcher.fetchFileContentByPath(path);
   const { frontmatter, content } = parsePost(raw);
 
@@ -165,7 +161,7 @@ async function getPostBySlugCached(
  * @throws notFound() 記事が見つからない場合やバリデーションエラー時
  */
 export async function getPostBySlug(
-  slug: string
+  slug: string,
 ): Promise<{ frontmatter: Frontmatter; content: string }> {
   try {
     const post = await getPostBySlugCached(slug);
@@ -174,12 +170,12 @@ export async function getPostBySlug(
     // エラー内容をログに記録
     if (error instanceof FrontmatterValidationError) {
       console.warn("Frontmatter invalid, returning 404", {
-        path: `content/posts/${slug}.mdx`,
+        path: `content/posts/${slug}.md`,
         issues: error.issues,
       });
     } else if (error instanceof Error) {
       console.error(`Failed to fetch post: ${slug}`, {
-        path: `content/posts/${slug}.mdx`,
+        path: `content/posts/${slug}.md`,
         error: error.message,
       });
 
