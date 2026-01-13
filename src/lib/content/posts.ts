@@ -87,10 +87,7 @@ function restoreDates<T extends { frontmatter: Frontmatter }>(item: T): T {
     ...item,
     frontmatter: {
       ...item.frontmatter,
-      publishedAt: item.frontmatter.publishedAt
-        ? new Date(item.frontmatter.publishedAt)
-        : undefined,
-      updatedAt: item.frontmatter.updatedAt ? new Date(item.frontmatter.updatedAt) : undefined,
+      date: item.frontmatter.date ? new Date(item.frontmatter.date) : undefined,
     },
   };
 }
@@ -106,23 +103,18 @@ export async function listPosts(): Promise<PostEntry[]> {
 
 /**
  * 公開記事のみを取得し、日付順でソート
- * @param sortBy - ソートする日付フィールド（デフォルト: updatedAt）
  * @returns 公開記事のみの配列（新しい順）
  */
-export async function listPublicPosts(
-  sortBy: "updatedAt" | "publishedAt" = "updatedAt",
-): Promise<PostEntry[]> {
+export async function listPublicPosts(): Promise<PostEntry[]> {
   const allPosts = await listPosts();
 
-  // 公開かつ accessMode: "public" のみフィルタ
-  const publicPosts = allPosts.filter(
-    (post) => post.frontmatter.visibility === "public" && post.frontmatter.accessMode === "public",
-  );
+  // access: "public" のみフィルタ
+  const publicPosts = allPosts.filter((post) => post.frontmatter.access === "public");
 
   // 日付順でソート（新しい順）
   return publicPosts.sort((a, b) => {
-    const dateA = a.frontmatter[sortBy];
-    const dateB = b.frontmatter[sortBy];
+    const dateA = a.frontmatter.date;
+    const dateB = b.frontmatter.date;
     if (!dateA) return 1;
     if (!dateB) return -1;
     return dateB.getTime() - dateA.getTime();

@@ -62,7 +62,7 @@ export function ProtectedPostGate({ title, verifyAction, hasPassword }: Props) {
         <p className="mt-4 text-sm text-amber-900/80 dark:text-amber-100/80">
           Frontmatter に
           <code className="mx-1 rounded bg-amber-100 px-2 py-0.5 text-xs dark:bg-amber-900">
-            protectedPassword
+            password
           </code>
           を設定してください。
         </p>

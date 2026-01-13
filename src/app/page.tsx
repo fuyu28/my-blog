@@ -33,9 +33,9 @@ export default async function HomePage() {
                   </p>
                 )}
 
-                {post.frontmatter.updatedAt && (
+                {post.frontmatter.date && (
                   <div className="text-[10px] uppercase text-zinc-400 dark:text-zinc-600 tracking-wide">
-                    last updated: {post.frontmatter.updatedAt.toLocaleDateString("ja-JP")}
+                    date: {post.frontmatter.date.toLocaleDateString("ja-JP")}
                   </div>
                 )}
               </div>

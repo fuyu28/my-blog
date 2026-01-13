@@ -32,8 +32,8 @@ Next.js 16 と GitHub API を使った、Markdown ベースのブログシステ
 - **記事管理**
   - ✅ 記事一覧表示（公開記事のみ）
   - ✅ 個別記事ページ
-  - ✅ `visibility` による公開/非公開制御
-  - ✅ 記事の日付順ソート（更新日/公開日）
+  - ✅ `access` による公開/非公開制御
+  - ✅ 記事の日付順ソート（`date`）
   - ✅ 静的サイト生成（SSG）
   - ✅ Frontmatter による記事メタデータ管理
 
@@ -52,13 +52,12 @@ Next.js 16 と GitHub API を使った、Markdown ベースのブログシステ
   - ✅ シンタックスハイライト対応（Markdown）
   - ✅ 記事説明文・サムネイル表示対応
 - **アクセス制御**
-  - ✅ `accessMode: "unlisted"` による直リンク限定公開
-  - ✅ `accessMode: "protected"` によるパスワード保護（記事ごとに `protectedPassword` を設定）
+  - ✅ `access: "unlisted"` による直リンク限定公開
+  - ✅ `access: "protected"` によるパスワード保護（記事ごとに `password` を設定）
 
 ### 🚧 未実装機能（将来の拡張予定）
 
 - **記事機能**
-  - ⏳ `isDeep` フラグによる詳細記事の特別表示
   - ⏳ タグ/トピックによる記事フィルタリング
   - ⏳ 記事検索機能
   - ⏳ 関連記事の推薦
@@ -81,8 +80,8 @@ Next.js 16 と GitHub API を使った、Markdown ベースのブログシステ
 
 ## 技術スタック
 
-- **フレームワーク**: Next.js 16.0.1 (App Router)
-- **ランタイム**: React 19.2.0
+- **フレームワーク**: Next.js 16.1.1 (App Router)
+- **ランタイム**: React 19.2.3
 - **言語**: TypeScript (strict mode)
 - **スタイリング**: Tailwind CSS v4
 - **Markdown 処理**: react-markdown + remark-gfm
@@ -137,12 +136,9 @@ GITHUB_REF=main  # ブランチ名（デフォルト: main）
 ```md
 ---
 title: "初めての記事"
-type: "tech"
-visibility: "public"
-accessMode: "public"
+access: "public"
 description: "これはサンプル記事です"
-publishedAt: "2025-01-01"
-updatedAt: "2025-01-05"
+date: "2025-01-01"
 topics: ["Next.js", "React"]
 ---
 
@@ -160,41 +156,33 @@ topics: ["Next.js", "React"]
 | フィールド | 型                            | 説明           | 例                      |
 | ---------- | ----------------------------- | -------------- | ----------------------- |
 | `title`    | `string`                      | 記事のタイトル | `"Next.js 16 の新機能"` |
-| `type`     | `"tech" \| "hobby" \| "misc"` | 記事のカテゴリ | `"tech"`                |
 
 ##### オプションフィールド（デフォルト値あり）
 
-| フィールド   | 型                                      | デフォルト値 | 説明                                                                    | 例         |
-| ------------ | --------------------------------------- | ------------ | ----------------------------------------------------------------------- | ---------- |
-| `visibility` | `"public" \| "private"`                 | `"private"`  | 公開状態。`"private"`の記事は表示されない                               | `"public"` |
-| `accessMode` | `"public" \| "unlisted" \| "protected"` | `"public"`   | アクセス制限。`"unlisted"`は直リンクのみ、`"protected"`はパスワード保護 | `"public"` |
-| `isDeep`     | `boolean`                               | `false`      | 詳細記事フラグ（将来の機能拡張用）                                      | `true`     |
+| フィールド | 型                                                  | デフォルト値 | 説明                                                                              | 例         |
+| ---------- | --------------------------------------------------- | ------------ | --------------------------------------------------------------------------------- | ---------- |
+| `access`   | `"public" \| "unlisted" \| "private" \| "protected"` | `"private"`  | アクセス制限。`"unlisted"`は直リンクのみ、`"protected"`はパスワード保護 | `"public"` |
 
 ##### オプションフィールド（任意）
 
-| フィールド          | 型                  | 説明                                                       | 例                                             |
-| ------------------- | ------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
-| `thumbnail`         | `string`            | サムネイル画像の URL                                       | `"https://example.com/image.png"`              |
-| `publishedAt`       | `string` (ISO 8601) | 記事の公開日                                               | `"2025-01-05"` または `"2025-01-05T10:00:00Z"` |
-| `updatedAt`         | `string` (ISO 8601) | 記事の最終更新日                                           | `"2025-01-10"`                                 |
-| `description`       | `string`            | 記事の要約・説明文                                         | `"Next.js 16の新機能を解説します"`             |
-| `topics`            | `string[]`          | 記事に関連するトピック・タグ                               | `["Next.js", "React", "TypeScript"]`           |
-| `protectedPassword` | `string`            | `accessMode: "protected"` のとき必須となる閲覧用パスワード | `"my-article-pass"`                            |
+| フィールド    | 型                  | 説明                                                     | 例                                             |
+| ------------- | ------------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| `thumbnail`   | `string`            | サムネイル画像の URL                                     | `"https://example.com/image.png"`              |
+| `date`        | `string` (ISO 8601) | 記事の日付                                               | `"2025-01-05"` または `"2025-01-05T10:00:00Z"` |
+| `description` | `string`            | 記事の要約・説明文                                       | `"Next.js 16の新機能を解説します"`             |
+| `topics`      | `string[]`          | 記事に関連するトピック・タグ                             | `["Next.js", "React", "TypeScript"]`           |
+| `password`    | `string`            | `access: "protected"` のとき必須となる閲覧用パスワード | `"my-article-pass"`                            |
 
 ##### 完全な例
 
 ```md
 ---
 title: "Next.js 16 の Cache Components を使ってみた"
-type: "tech"
-visibility: "public"
-accessMode: "public"
+access: "public"
 thumbnail: "https://example.com/nextjs-cache.png"
-publishedAt: "2025-01-05"
-updatedAt: "2025-01-10"
+date: "2025-01-05"
 description: "Next.js 16 で導入された Cache Components の使い方と実装例を紹介します。"
 topics: ["Next.js", "React", "キャッシュ戦略"]
-isDeep: false
 ---
 
 # Cache Components の基本
@@ -205,16 +193,16 @@ isDeep: false
 ##### バリデーションエラーについて
 
 - 必須フィールドが欠けている場合、ビルド時にエラーが発生します
-- `type`, `visibility`, `accessMode` の値は列挙型で定義されているため、指定外の値は使用できません
-- 日付フィールドは ISO 8601 形式（`YYYY-MM-DD` または `YYYY-MM-DDTHH:mm:ssZ`）で記述してください
+- `access` の値は列挙型で定義されているため、指定外の値は使用できません
+- `date` は ISO 8601 形式（`YYYY-MM-DD` または `YYYY-MM-DDTHH:mm:ssZ`）で記述してください
 - **配列形式エラー**: `topics` は配列形式で記述してください（例: `["Next.js", "React"]`）
 
 ### アクセス制御の挙動
 
-- `accessMode: "public"`: 一覧・静的生成の対象。従来どおり閲覧可能。
-- `accessMode: "unlisted"`: 一覧と静的生成には含まれないが、URL を知っていれば閲覧可能。
-- `accessMode: "protected"`: 一覧と静的生成には含まれない。Frontmatter の
-  `protectedPassword` でパスワード認証し、認証は 12 時間クッキーで保持。
+- `access: "public"`: 一覧・静的生成の対象。従来どおり閲覧可能。
+- `access: "unlisted"`: 一覧と静的生成には含まれないが、URL を知っていれば閲覧可能。
+- `access: "protected"`: 一覧と静的生成には含まれない。Frontmatter の
+  `password` でパスワード認証し、認証は 12 時間クッキーで保持。
 
 ## 開発コマンド
 
@@ -325,7 +313,7 @@ Error: Cannot find module '@/lib/...'
 
 ### 記事が表示されない
 
-1. `visibility: "public"`が設定されているか確認
+1. `access: "public"`が設定されているか確認
 2. GitHub App がリポジトリへのアクセス権限を持っているか確認
 3. `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_REF`が正しいか確認
 
@@ -345,9 +333,9 @@ Error: Cannot find module '@/lib/...'
 
 → **対処**: ログに表示されたファイルの Frontmatter を確認してください：
 
-- **必須フィールドの不足**: `title` と `type` は必ず指定する必要があります
-- **不正な enum 値**: `type` は `"tech"`, `"hobby"`, `"misc"` のいずれか、`visibility` は `"public"` または `"private"` である必要があります
-- **日付形式エラー**: `publishedAt` と `updatedAt` は ISO 8601 形式（`2025-01-05` または `2025-01-05T10:00:00Z`）で記述してください
+- **必須フィールドの不足**: `title` は必ず指定する必要があります
+- **不正な enum 値**: `access` は `"public"`, `"unlisted"`, `"private"`, `"protected"` のいずれかである必要があります
+- **日付形式エラー**: `date` は ISO 8601 形式（`2025-01-05` または `2025-01-05T10:00:00Z`）で記述してください
 - **配列形式エラー**: `topics` は配列形式で記述してください（例: `["Next.js", "React"]`）
 - **null 値エラー**: オプションフィールドは空白のままにせず、完全に省略するか、値を指定してください
 
